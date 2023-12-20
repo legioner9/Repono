@@ -1,0 +1,41 @@
+http://www.ozon.ru/context/detail/id/31649671/?utm_source=cpc_yandex_market&utm_medium=cpc&utm_campaign=div_book&utm_content=31649671&utm_term=31649671
+
+http://scanlibs.com/c-primer-plus-6th-edition/
+
+http://scanlibs.com/yazyik-programmirovaniya-c-6-e-izdanie/
+
+Название: Язык программирования C. Лекции и упражнения, 6-е издание
+Размер: 10 Mb
+Автор: Прата Стивен
+Год: 2015
+Издательство: Вильямс
+ISBN: 978-5-8459-1950-2
+Страниц: 928
+Язык: Русский
+Формат: PDF
+Размер: 15 Mb
+
+Описание: Эта книга представляет собой тщательно проверенное, хорошо продуманное и всеобъемлющее учебное пособие, предназначенное для программистов и разработчиков. Ставшая классикой в области вычислений, она обучает принципам программирования, в том числе структуризации кода и нисходящему проектированию.
+Автор и преподаватель Стивен Прата создал поучительное, ясное и проницательное введение в C. Наряду с деталями языка C объясняются фундаментальные концепции программирования. Многочисленные короткие практические примеры иллюстрируют только одну или две концепции за раз и поощряют читателей проработать новые темы, непосредственно приступив к реальному их использованию.
+Шестое издание этой книги было обновлено и расширено с целью охвата последних наработок в C, а также раскрытия подробностей нового стандарта C11. Здесь вы найдете углубленные, широкие и разнообразные подходы и инструменты, совершенствующие процесс изучения.
+
+Название: C Primer Plus 6th Edition
+Автор: Stephen Prata
+Год: 2014
+Издательство: Addison-Wesley
+ISBN: 0-321-92842-3
+Страниц: 1067
+Language: English
+Формат: PDF
+Размер: 10 Mb
+
+Описание: C Primer Plus is a carefully tested, well-crafted, and complete tutorial on a subject core to programmers and developers. This computer science classic teaches principles of programming, including structured code and top-down design.
+Author and educator Stephen Prata has created an introduction to C that is instructive, clear, and insightful. Fundamental programming concepts are explained along with details of the C language. Many short, practical examples illustrate just one or two concepts at a time, encouraging readers to master new topics by immediately putting them to use.
+Review questions and programming exercises at the end of each chapter bring out the most critical pieces of information and help readers understand and digest the most difficult concepts. A friendly and easy-to-use self-study guide, this book is appropriate for serious students of programming, as well as developers proficient in other languages with a desire to better understand the fundamentals of this core language.
+The sixth edition of this book has been updated and expanded to cover the latest developments in C as well as to take a detailed look at the new C11 standard. In C Primer Plus you’ll find depth, breadth, and a variety of teaching techniques and tools to enhance your learning:
+Complete, integrated discussion of both C language fundamentals and additional features
+Clear guidance about when and why to use different parts of the language
+Hands-on learning with concise and simple examples that develop your understanding of a concept or two at a time
+Hundreds of practical sample programs
+Review questions and programming exercises at the end of each chapter to test your understanding
+Coverage of generic C to give you the greatest flexibility

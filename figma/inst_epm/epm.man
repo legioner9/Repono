@@ -1,0 +1,41 @@
+Установка figma...
+ # /usr/bin/env bash /etc/eepm/play.d/figma.sh --run 
+ # eget --list --latest https://github.com/Figma-Linux/figma-linux/releases figma-linux_[0-9]*_linux_x86_64.rpm
+ # epm install --repack https://github.com/Figma-Linux/figma-linux/releases/download/v0.11.2/figma-linux_0.11.2_linux_x86_64.rpm
+ # eget --latest https://github.com/Figma-Linux/figma-linux/releases/download/v0.11.2/figma-linux_0.11.2_linux_x86_64.rpm
+ # /usr/bin/wget --content-disposition https://github.com/Figma-Linux/figma-linux/releases/download/v0.11.2/figma-linux_0.11.2_linux_x86_64.rpm
+--2023-12-19 21:04:50--  https://github.com/Figma-Linux/figma-linux/releases/download/v0.11.2/figma-linux_0.11.2_linux_x86_64.rpm
+Распознаётся github.com (github.com)… 140.82.121.4
+Подключение к github.com (github.com)|140.82.121.4|:443... соединение установлено.
+HTTP-запрос отправлен. Ожидание ответа… 302 Found
+Адрес: https://objects.githubusercontent.com/github-production-release-asset-2e65be/115411542/57bb5625-656f-4bd6-bbf0-88c827a6a0cc?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIWNJYAX4CSVEH53A%2F20231219%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20231219T140451Z&X-Amz-Expires=300&X-Amz-Signature=7f838bcc27d439fdc85adab6b4e4e1ee6961f27fda3c8d3184e638dd815e7b9e&X-Amz-SignedHeaders=host&actor_id=0&key_id=0&repo_id=115411542&response-content-disposition=attachment%3B%20filename%3Dfigma-linux_0.11.2_linux_x86_64.rpm&response-content-type=application%2Foctet-stream [переход]
+--2023-12-19 21:04:51--  https://objects.githubusercontent.com/github-production-release-asset-2e65be/115411542/57bb5625-656f-4bd6-bbf0-88c827a6a0cc?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIWNJYAX4CSVEH53A%2F20231219%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20231219T140451Z&X-Amz-Expires=300&X-Amz-Signature=7f838bcc27d439fdc85adab6b4e4e1ee6961f27fda3c8d3184e638dd815e7b9e&X-Amz-SignedHeaders=host&actor_id=0&key_id=0&repo_id=115411542&response-content-disposition=attachment%3B%20filename%3Dfigma-linux_0.11.2_linux_x86_64.rpm&response-content-type=application%2Foctet-stream
+Распознаётся objects.githubusercontent.com (objects.githubusercontent.com)… 185.199.108.133, 185.199.110.133, 185.199.111.133, ...
+Подключение к objects.githubusercontent.com (objects.githubusercontent.com)|185.199.108.133|:443... соединение установлено.
+HTTP-запрос отправлен. Ожидание ответа… 200 OK
+Длина: 74147628 (71M) [application/octet-stream]
+Сохранение в: «figma-linux_0.11.2_linux_x86_64.rpm»
+
+     0K .......... .......... .......... .......... ..........  0%  571K 2m7s
+     ...
+                                           100% 92,2M=19s
+
+2023-12-19 21:05:11 (3,65 MB/s) - «figma-linux_0.11.2_linux_x86_64.rpm» сохранён [74147628/74147628]
+
+
+Repacking /tmp/tmp.CkfxMT1K2M/figma-linux_0.11.2_linux_x86_64.rpm to local rpm format (inside /tmp/tmp.1KYZptjCYf/figma-linux_0.11.2_linux_x86_64.rpm.tmpdir) ...
+ # alien --generate --to-rpm ../figma-linux_0.11.2_linux_x86_64.rpm
+Warning: Skipping conversion of scripts in package figma-linux: postinst postrm
+Warning: Use the --scripts parameter to include the scripts.
+Use of uninitialized value in concatenation (.) or string at /usr/share/perl5/Alien/Package/Rpm.pm line 342, <GETPERMS> line 145.
+ # /usr/bin/env bash /etc/eepm/repack.d/generic.sh /tmp/tmp.1KYZptjCYf/figma-linux_0.11.2_linux_x86_64.rpm.tmpdir/figma-linux-0.11.2 /tmp/tmp.1KYZptjCYf/figma-linux_0.11.2_linux_x86_64.rpm.tmpdir/figma-linux-0.11.2-2.spec figma-linux /tmp/tmp.CkfxMT1K2M/figma-linux_0.11.2_linux_x86_64.rpm 
+ # /usr/bin/env bash /etc/eepm/repack.d/figma-linux.sh /tmp/tmp.1KYZptjCYf/figma-linux_0.11.2_linux_x86_64.rpm.tmpdir/figma-linux-0.11.2 /tmp/tmp.1KYZptjCYf/figma-linux_0.11.2_linux_x86_64.rpm.tmpdir/figma-linux-0.11.2-2.spec figma-linux /tmp/tmp.CkfxMT1K2M/figma-linux_0.11.2_linux_x86_64.rpm 
+права доступа '/tmp/tmp.1KYZptjCYf/figma-linux_0.11.2_linux_x86_64.rpm.tmpdir/figma-linux-0.11.2/usr/share/applications/figma-linux.desktop' оставлены в виде 0644 (rw-r--r--)
+ # /usr/bin/rpmbuild --buildroot /tmp/tmp.1KYZptjCYf/figma-linux_0.11.2_linux_x86_64.rpm.tmpdir/figma-linux-0.11.2 --target x86_64 -bb /tmp/tmp.1KYZptjCYf/figma-linux_0.11.2_linux_x86_64.rpm.tmpdir/figma-linux-0.11.2-2.spec
+предупреждение: absolute symlink: /tmp/tmp.1KYZptjCYf/figma-linux_0.11.2_linux_x86_64.rpm.tmpdir/figma-linux-0.11.2/usr/bin/figma-linux -> /opt/figma-linux/figma-linux
+WARNING: %%% You are trying install package /tmp/tmp.1KYZptjCYf/figma-linux-0.11.2-epm1.repacked.2.x86_64.rpm repacked from third-party software source. Use it at your own risk. %%%
+ # rpm -Uvh /tmp/tmp.1KYZptjCYf/figma-linux-0.11.2-epm1.repacked.2.x86_64.rpm
+Подготовка...                           ################################# [100%]
+Обновление / установка...
+1: figma-linux-100:0.11.2-epm1.repacked.2 ################################# [100%]
+Running /usr/lib/rpm/posttrans-filetriggers

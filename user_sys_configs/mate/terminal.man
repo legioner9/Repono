@@ -1,0 +1,8 @@
+## https://askubuntu.com/questions/1302130/saving-and-reusing-mate-terminal-configuration
+
+To backup settings and profiles use:
+
+    dconf dump /org/mate/terminal/ > bkp
+To restore use:
+
+    dconf load /org/mate/terminal/ < bkp

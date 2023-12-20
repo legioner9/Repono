@@ -1,0 +1,1 @@
+Copy cracked file to program folder.

@@ -1,0 +1,1 @@
+Copyright 2021 The Red Hat Project Authors (https://github.com/RedHatOfficial/RedHatFont)

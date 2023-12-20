@@ -1,0 +1,12 @@
+let g:netrw_dirhistmax  =10
+let g:netrw_dirhistcnt =5
+let g:netrw_dirhist_5='/home/st/.qa/main_repo_fn/dir_vim_/_vim_/_man'
+let g:netrw_dirhist_4='/home/st/.qa/main_repo_fn/dir_vim_/_vim_'
+let g:netrw_dirhist_3='/home/st/.qa/main_repo_fn/dir_vim_'
+let g:netrw_dirhist_2='/home/st/.qa/main_repo_fn/dir_vim_/_vim_'
+let g:netrw_dirhist_1='/home/st/.qa/main_repo_fn/dir_vim_'
+let g:netrw_dirhist_0='/home/st/.qa/main_repo_fn/dir_f_f_'
+let g:netrw_dirhist_9='/home/st/.qa/main_repo_fn/dir_f_f_/_f_f_/_sh'
+let g:netrw_dirhist_8='/home/st/.qa/main_repo_fn/dir_f_f_/_f_f_'
+let g:netrw_dirhist_7='/home/st/.qa/main_repo_fn/dir_f_f_/_f_f_/_sh'
+let g:netrw_dirhist_6='/home/st/.qa/main_repo_fn/dir_f_f_/_f_f_'

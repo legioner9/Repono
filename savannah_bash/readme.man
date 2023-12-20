@@ -1,0 +1,9 @@
+## http://git.savannah.gnu.org/cgit/bash.git/
+
+echo "# svannah_bash" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git branch -M main
+git remote add origin git@github.com:legioner9/svannah_bash.git
+git push -u origin main

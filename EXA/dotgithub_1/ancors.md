@@ -1,0 +1,1 @@
+## https://github.com/m5x5/sourcesync/blob/main/.github/workflows/versioning.yml

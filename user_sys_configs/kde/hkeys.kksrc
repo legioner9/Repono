@@ -1,0 +1,18 @@
+[codium.desktop][Global Shortcuts]
+_launch=Ctrl+F3
+new-empty-window=
+
+[mate-terminal.desktop][Global Shortcuts]
+_launch=Ctrl+F2
+
+[org.kde.dolphin.desktop][Global Shortcuts]
+_launch=Ctrl+F6; Meta+E
+
+[telegramdesktop.desktop][Global Shortcuts]
+Quit=
+_launch=Ctrl+F5
+
+[yandex-browser.desktop][Global Shortcuts]
+_launch=Ctrl+F4
+new-private-window=
+new-window=
