@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# if find ${REPO_PATH}/Repono -type f -size +45M  -not -path "${REPO_PATH}/Repono/.git" ; then
+#     plt_info "in ${REPO_PATH}/_repo/Repono/.d/.ham/main/main.ham : TRUE_EXEC : find ${REPO_PATH}/Repono -type f -size +45M : return 1"
+#     return 1
+# fi
+
+echo -e "${RED}--- that file://${REPO_PATH}/${name_repo}/.d/.ham/main/main.ham ---${NORMAL}" #sistem info mesage
+
+echo -e "${HLIGHT}--- dexec2err__() file://${REPO_PATH}/${name_repo}/.d/.ham/main/main.fn.lst.d ---${NORMAL}" #start files
+
+if ! dexec2err__ ${REPO_PATH}/${name_repo}/.d/.ham/main/main.fn.lst.d; then
+
+    plt_info "in file://${REPO_PATH}/${name_repo}/.d/.ham/main/main.ham : FAIL_EXEC : dexec2err__() file://${REPO_PATH}/${name_repo}//.d/.ham/main/main.fn.lst.d: return 1"
+    return 1
+
+fi
