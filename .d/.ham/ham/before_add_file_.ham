@@ -2,7 +2,7 @@
 
 #! if up error in before add - out comment with 10
 
-echo -e "${BLUE}--- that  ${REPO_PATH}/${name_repo}/.d/.ham/ham/before_add_file_.ham ---${NORMAL}" #sistem info mesage
+echo -e "${RED}--- that  ${REPO_PATH}/${name_repo}/.d/.ham/ham/before_add_file_.ham ---${NORMAL}" #sistem info mesage
 echo -e "${HLIGHT}--- file_size_check_arg_mb_proc__ham__d() 45 ---${NORMAL}"                       #start files
 
 if ! file_size_check_arg_mb_proc__ham__d "45"; then
