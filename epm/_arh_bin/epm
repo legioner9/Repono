@@ -1,0 +1,709 @@
+#!/usr/bin/env bash
+#
+# Copyright (C) 2012-2023  Etersoft
+# Copyright (C) 2012-2023  Vitaly Lipatov <lav@etersoft.ru>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+
+PROGDIR=$(dirname "$0")
+PROGNAME=$(basename "$0")
+[ -n "$EPMCURDIR" ] || export EPMCURDIR="$(pwd)"
+CMDSHELL="/usr/bin/env bash"
+# TODO: pwd for ./epm and which for epm
+[ "$PROGDIR" = "." ] && PROGDIR="$EPMCURDIR"
+if [ "$0" = "/dev/stdin" ] || [ "$0" = "sh" ] ; then
+    PROGDIR=""
+    PROGNAME=""
+fi
+
+# will replaced with /usr/share/eepm during install
+SHAREDIR=/usr/share/eepm
+# will replaced with /etc/eepm during install
+CONFIGDIR=/etc/eepm
+
+EPMVERSION="3.60.5-eter0.p10.1"
+
+# package, single (file), pipe, git
+EPMMODE="package"
+[ "$SHAREDIR" = "$PROGDIR" ] && EPMMODE="single"
+[ "$EPMVERSION" = "@""VERSION""@" ] && EPMMODE="git"
+[ "$PROGNAME" = "" ] && EPMMODE="pipe"
+
+if [ "$EPMMODE" = "git" ] ; then
+    EPMVERSION=$(head $PROGDIR/../eepm.spec | grep "^Version: " | sed -e 's|Version: ||' )
+fi
+
+load_helper()
+{
+    local shieldname="loaded$(echo "$1" | sed -e 's|-||g')"
+    # already loaded
+    eval "[ -n \"\$$shieldname\" ]" && debug "Already loaded $1" && return
+
+    local CMD="$SHAREDIR/$1"
+    # do not use fatal() here, it can be initial state
+    [ -r "$CMD" ] || { echo "FATAL: Have no $CMD helper file" ; exit 1; }
+    eval "$shieldname=1"
+    # shellcheck disable=SC1090
+    . $CMD
+}
+
+
+load_helper epm-sh-functions
+
+# fast call for tool
+if [ "$1" = "tool" ] ; then
+        shift
+        load_helper epm-tool
+        epm_tool "$@"
+        exit
+fi
+
+if [ "$1" = "--inscript" ] && [ "$2" = "tool" ] ; then
+        shift 2
+        load_helper epm-tool
+        epm_tool "$@"
+        exit
+fi
+
+
+set_pm_type
+
+check_tty
+
+#############################
+
+phelp()
+{
+    echo "$Descr
+$Usage
+
+Options:
+$(get_help HELPOPT)
+
+Short commands:
+$(get_help HELPSHORT)
+
+$(get_help HELPCMD)
+
+Examples:
+    $ epmi etckeeper      install etckeeper package
+    $ epmqp lib           print out all installed packages with 'lib' in a name
+    $ epmqf ip            print out a package the command 'ip' from is
+"
+}
+
+print_version()
+{
+        echo "EPM package manager version $EPMVERSION  Telegram: https://t.me/useepm  https://wiki.etersoft.ru/Epm"
+        echo "Running on $DISTRNAME/$DISTRVERSION ('$PMTYPE' package manager uses '$PKGFORMAT' package format)"
+        echo "Copyright (c) Etersoft 2012-2023"
+        echo "This program may be freely redistributed under the terms of the GNU AGPLv3."
+}
+
+
+Usage="Usage: epm [options] <command> [package name(s), package files]..."
+Descr="epm - EPM package manager"
+
+debug=
+verbose=$EPM_VERBOSE
+quiet=
+nodeps=
+noremove=
+dryrun=
+force=
+repack=
+norepack=
+install=
+inscript=
+scripts=
+noscripts=
+short=
+direct=
+sort=
+non_interactive=$EPM_AUTO
+download=
+download_only=
+print_url=
+interactive=
+force_yes=
+skip_installed=
+skip_missed=
+show_command_only=
+epm_cmd=
+warmup=
+pkg_files=
+pkg_dirs=
+pkg_names=
+pkg_urls=
+pkg_options=
+quoted_args=
+direct_args=
+
+eget_backend=$EGET_BACKEND
+epm_vardir=/var/lib/eepm
+epm_cachedir=/var/cache/eepm
+eget_ipfs_db=$epm_vardir/eget-ipfs-db.txt
+
+# load system wide config
+[ -f $CONFIGDIR/eepm.conf ] && . $CONFIGDIR/eepm.conf
+
+
+case $PROGNAME in
+    epmi)                      # HELPSHORT: alias for epm install
+        epm_cmd=install
+        ;;
+    epmI)                      # HELPSHORT: alias for epm Install
+        epm_cmd=Install
+        ;;
+    epme)                      # HELPSHORT: alias for epm remove
+        epm_cmd=remove
+        ;;
+    epmcl)                     # HELPSHORT: alias for epm changelog
+        epm_cmd=changelog
+        ;;
+    epmp)                      # HELPSHORT: alias for epm play
+        epm_cmd=play
+        direct_args=1
+        ;;
+    epms)                      # HELPSHORT: alias for epm search
+        epm_cmd=search
+        direct_args=1
+        ;;
+    epmsf)                     # HELPSHORT: alias for epm search-file (epm sf)
+        epm_cmd=search_file
+        ;;
+    epmwd)                     # HELPSHORT: alias for epm wd
+        epm_cmd=whatdepends
+        ;;
+    epmq)                      # HELPSHORT: alias for epm query
+        epm_cmd=query
+        ;;
+    epmqi)                     # HELPSHORT: alias for epm info
+        epm_cmd=info
+        ;;
+    epmqf)                     # HELPSHORT: alias for epm belongs
+        epm_cmd=query_file
+        ;;
+    epmqa)                     # HELPSHORT: alias for epm packages
+        epm_cmd=packages
+        ;;
+    epmqp)                     # HELPSHORT: alias for epm qp (epm query package)
+        epm_cmd=query_package
+        ;;
+    epmql)                     # HELPSHORT: alias for epm filelist
+        epm_cmd=filelist
+        ;;
+    epmrl)                     # HELPSHORT: alias for epm repo list
+        epm_cmd=repolist
+        direct_args=1
+        ;;
+    epmu)                      # HELPSHORT: alias for epm update
+        epm_cmd=update
+        direct_args=1
+        ;;
+    epm|upm|eepm)              # HELPSHORT: other aliases for epm command
+        ;;
+    epm.sh)
+        ;;
+    *)
+        # epm by default
+        # fatal "Unknown command: $progname"
+        ;;
+esac
+
+# was called with alias name
+[ -n "$epm_cmd" ] && PROGNAME="epm"
+
+check_command()
+{
+    # do not override command
+    [ -z "$epm_cmd" ] || return
+
+# HELPCMD: PART: Base commands:
+    case $1 in
+    -i|install|add|i|it)         # HELPCMD: install package(s) from remote repositories or from local file
+        epm_cmd=install
+        ;;
+    -e|-P|rm|del|remove|delete|uninstall|erase|purge|e)  # HELPCMD: remove (delete) package(s) from the database and the system
+        epm_cmd=remove
+        ;;
+    -s|search|s|find|sr)                # HELPCMD: search in remote package repositories
+        epm_cmd=search
+        direct_args=1
+        ;;
+    -qp|qp|grep|query_package)     # HELPCMD: search in the list of installed packages
+        epm_cmd=query_package
+        ;;
+    -qf|qf|-S|wp|which|belongs)     # HELPCMD: query package(s) owning file
+        epm_cmd=query_file
+        ;;
+
+# HELPCMD: PART: Useful commands:
+    reinstall)                # HELPCMD: reinstall package(s) from remote repositories or from local file
+        epm_cmd=reinstall
+        ;;
+    Install)                  # HELPCMD: perform update package repo info and install package(s) via install command
+        epm_cmd=Install
+        ;;
+    -q|q|query)               # HELPCMD: check presence of package(s) and print this name (also --short is supported)
+        epm_cmd=query
+        ;;
+    installed)                # HELPCMD: check presence of package(s) (like -q with --quiet)
+        epm_cmd=installed
+        ;;
+    status)                   # HELPCMD: get status of package(s) (see epm status --help)
+        epm_cmd=status
+        direct_args=1
+        ;;
+    -sf|sf|filesearch|search-file)        # HELPCMD: search in which package a file is included
+        epm_cmd=search_file
+        ;;
+    -ql|ql|filelist|get-files)          # HELPCMD: print package file list
+        epm_cmd=filelist
+        ;;
+    -cl|cl|changelog)         # HELPCMD: show changelog for package
+        epm_cmd=changelog
+        ;;
+    -qi|qi|info|show)         # HELPCMD: print package detail info
+        epm_cmd=info
+        ;;
+    requires|deplist|depends|req|depends-on)     # HELPCMD: print package requires
+        epm_cmd=requires
+        ;;
+    provides|prov)            # HELPCMD: print package provides
+        epm_cmd=provides
+        ;;
+    whatdepends|rdepends|whatrequires|wd|required-by)   # HELPCMD: print packages dependences on that
+        epm_cmd=whatdepends
+        ;;
+    whatprovides)             # HELPCMD: print packages provides that target
+        epm_cmd=whatprovides
+        ;;
+    conflicts)                # HELPCMD: print package conflicts
+        epm_cmd=conflicts
+        ;;
+    -qa|qa|ls|packages|list-installed|li)  # HELPCMD: print list of all installed packages
+        epm_cmd=packages
+        direct_args=1
+        ;;
+    list)                     # HELPCMD: print list of packages (see epm list --help)
+        epm_cmd=list
+        direct_args=1
+        ;;
+    # it is too hard operation, so just list name is very short for it
+    list-available)           # HELPCMD: print list of all available packages
+        epm_cmd=list_available
+        direct_args=1
+        ;;
+    programs)                 # HELPCMD: print list of installed GUI program(s) (they have .desktop files)
+        epm_cmd=programs
+        direct_args=1
+        ;;
+    assure)                   # HELPCMD: <command> [package] [version]: install package if command does not exist
+        epm_cmd=assure
+        ;;
+    policy|resolve)           # HELPCMD: print detailed information about the priority selection of package
+        epm_cmd=policy
+        ;;
+
+# HELPCMD: PART: Repository control:
+    update|update-repo|ur)                   # HELPCMD: update remote package repository databases
+        epm_cmd=update
+        direct_args=1
+        ;;
+    addrepo|ar|--add-repo)    # HELPCMD: add package repo (etersoft, autoimports, archive 2017/01/31); run with param to get list
+        epm_cmd=addrepo
+        direct_args=1
+        ;;
+    repolist|sl|rl|listrepo|repo-list|list-repo|lr)  # HELPCMD: print repo list
+        epm_cmd=repolist
+        direct_args=1
+        ;;
+    repofix)                  # HELPCMD: <mirror>: fix paths in sources lists (ALT Linux only). use repofix etersoft/yandex/basealt for rewrite URL to the specified server
+        epm_cmd=repofix
+        direct_args=1
+        ;;
+    removerepo|remove-repo|rr)            # HELPCMD: remove package repo (shortcut for epm repo remove)
+        epm_cmd=removerepo
+        direct_args=1
+        ;;
+    repo)                     # HELPCMD: manipulate with repository list (see epm repo --help)
+        epm_cmd=repo
+        direct_args=1
+        ;;
+    check|fix|verify)         # HELPCMD: check local package base integrity and fix it
+        epm_cmd=check
+        direct_args=1
+        ;;
+    dedup)                    # HELPCMD: remove unallowed duplicated pkgs (after upgrade crash)
+        epm_cmd=dedup
+        direct_args=1
+        ;;
+    full-upgrade)              # HELPCMD: update all system packages and kernel
+        epm_cmd=full_upgrade
+        direct_args=1
+        ;;
+    release-upgrade|upgrade-release|upgrade-system|release-switch)  # HELPCMD: upgrade/switch whole system to the release in arg (default: next (latest) release)
+        epm_cmd=release_upgrade
+        direct_args=1
+        ;;
+    release-downgrade|downgrade-release|downgrade-system)           # HELPCMD: downgrade whole system to the release in arg (default: previuos release)
+        epm_cmd=release_downgrade
+        direct_args=1
+        ;;
+    kernel-update|kernel-upgrade|update-kernel|upgrade-kernel)      # HELPCMD: update system kernel to the last repo version
+        epm_cmd=kernel_update
+        direct_args=1
+        ;;
+    remove-old-kernels|remove-old-kernel)      # HELPCMD: remove old system kernels (exclude current or last two kernels)
+        epm_cmd=remove_old_kernels
+        direct_args=1
+        ;;
+    stats)                                      # HELPCMD: show statistics about repositories and installations
+        epm_cmd=stats
+        direct_args=1
+        ;;
+
+# HELPCMD: PART: Other commands:
+    clean|delete-cache|dc)                    # HELPCMD: clean local package cache
+        epm_cmd=clean
+        direct_args=1
+        ;;
+    restore)                  # HELPCMD: install (restore) packages need for the project (f.i. by requirements.txt)
+        epm_cmd=restore
+        direct_args=1
+        ;;
+    autoremove|package-cleanup)   # HELPCMD: auto remove unneeded package(s) Supports args for ALT: [--direct [libs|python|perl|libs-devel]]
+        epm_cmd=autoremove
+        direct_args=1
+        ;;
+    mark)                     # HELPCMD: mark package as manually or automatically installed or hold/unhold it (see epm mark --help)
+        epm_cmd=mark
+        direct_args=1
+        ;;
+    history)                  # HELPCMD: show a log of actions taken by the software management (see epm history --help)
+        epm_cmd=history
+        direct_args=1
+        ;;
+    autoorphans|--orphans|remove-orphans)    # HELPCMD: remove all packages not from the repository
+        epm_cmd=autoorphans
+        direct_args=1
+        ;;
+    upgrade|up|dist-upgrade)     # HELPCMD: performs upgrades of package software distributions
+        epm_cmd=upgrade
+        ;;
+    Upgrade)                  # HELPCMD: force update package base, then run upgrade
+        epm_cmd=Upgrade
+        direct_args=1
+        ;;
+    downgrade)                # HELPCMD: downgrade [all] packages to the repo state
+        epm_cmd=downgrade
+        ;;
+    download|fetch|fc)        # HELPCMD: download package(s) file to the current dir
+        epm_cmd=download
+        ;;
+# TODO: replace with install --simulate
+    simulate)                 # HELPCMD: simulate install with check requires
+        epm_cmd=simulate
+        ;;
+    audit)                    # HELPCMD: audits installed packages against known vulnerabilities
+        epm_cmd=audit
+        direct_args=1
+        ;;
+    #checksystem)              # HELPCMD: check system for known errors (package management related)
+    #    epm_cmd=checksystem
+    #    direct_args=1
+    #    ;;
+    site|url)                 # HELPCMD: open package's site in a browser (use -p for open packages.altlinux.org site)
+        epm_cmd=site
+        ;;
+    ei|ik|epminstall|epm-install|selfinstall) # HELPCMD: install package(s) from Korinf (eepm by default)
+        epm_cmd=epm_install
+        ;;
+    print)                    # HELPCMD: print various info, run epm print help for details
+        epm_cmd=print
+        direct_args=1
+        ;;
+    tool)                     # HELPCMD: run embedded tool (see epm tool --help)
+        epm_cmd=tool
+        direct_args=1
+        ;;
+    repack)                   # HELPCMD: repack rpm to local compatibility
+        epm_cmd=repack
+        ;;
+    pack)                     # HELPCMD: pack tarball or dir to a rpm package
+        epm_cmd=pack
+        direct_args=1
+        ;;
+    moo)
+        epm_cmd=moo
+        direct_args=1
+        ;;
+    prescription|recipe)      # HELPCMD: run prescription (a script to achieving the goal), run without args to get list
+        epm_cmd=prescription
+        direct_args=1
+        ;;
+    play)                     # HELPCMD: install the application from the official site (run without args to get list)
+        epm_cmd=play
+        direct_args=1
+        ;;
+    -V|checkpkg|integrity)    # HELPCMD: check package file integrity (checksum)
+        epm_cmd=checkpkg
+        ;;
+    -h|--help|help)           # HELPOPT: print this help
+        help=1
+        phelp
+        exit 0
+        ;;
+    *)
+        return 1
+        ;;
+    esac
+    return 0
+}
+
+check_option()
+{
+    # optimization
+    case $1 in
+    -*)
+        # pass
+        ;;
+    *)
+        return 1
+        ;;
+    esac
+
+    case $1 in
+    -v|--version)         # HELPOPT: print version
+        [ -n "$epm_cmd" ] && return 1
+        [ -n "$short" ] && echo "$EPMVERSION" | sed -e 's|-.*||' && exit 0
+        print_version
+        exit 0
+        ;;
+    --verbose)            # HELPOPT: verbose mode
+        verbose="--verbose"
+        ;;
+    --debug)              # HELPOPT: more debug output mode
+        debug="--debug"
+        ;;
+    --skip-installed)     # HELPOPT: skip already installed packages during install
+        skip_installed=1
+        ;;
+    --skip-missed)        # HELPOPT: skip not installed packages during remove
+        skip_missed=1
+        ;;
+    --show-command-only)  # HELPOPT: show command only, do not any action (supports install and remove ONLY)
+        show_command_only=1
+        ;;
+    --quiet|--silent)     # HELPOPT: quiet mode (do not print commands before exec)
+        quiet="--quiet"
+        ;;
+    --nodeps)             # HELPOPT: skip dependency check (during install/simulate and so on)
+        nodeps="--nodeps"
+        ;;
+    --force)              # HELPOPT: force install/remove package (f.i., override)
+        force="--force"
+        ;;
+    --noremove|--no-remove)  # HELPOPT: exit if any packages are to be removed during upgrade
+        noremove="--no-remove"
+        ;;
+    --no-stdin|--inscript)  # HELPOPT: don't read from stdin for epm args
+        inscript=1
+        ;;
+    --dry-run|--simulate|--just-print|--no-act) # HELPOPT: print only (autoremove/autoorphans/remove only)
+        dryrun="--dry-run"
+        ;;
+    --short)              # HELPOPT: short output (just 'package' instead 'package-version-release')
+        short="--short"
+        ;;
+    --direct)              # HELPOPT: direct install package file from ftp (not via hilevel repository manager)
+        direct="--direct"
+        ;;
+    --repack)              # HELPOPT: repack rpm package(s) before install
+        repack="--repack"
+        ;;
+    --norepack)              # HELPOPT: don't repack rpm package(s) if it is by default before install
+        norepack="--norepack"
+        ;;
+    --install)             # HELPOPT: install packed rpm package(s)
+        install="--install"
+        ;;
+    --scripts)             # HELPOPT: include scripts in repacked rpm package(s) (see --repack or repacking when foreign package is installed)
+        scripts="--scripts"
+        ;;
+    --noscripts)           # HELPOPT: disable scripts in install packages
+        noscripts="--noscripts"
+        ;;
+    --save-only)            # HELPOPT: save the package/tarball after all transformations (instead of install it)
+        save_only="--save-only"
+        ;;
+    --put-to-repo=*)          # HELPOPT: put the package after all transformations to the repo (--put-to-repo=/path/to/repo)
+        put_to_repo="$(echo "$1" | sed -e 's|--put-to-repo=||')"
+        ;;
+    --download-only)       # HELPOPT: download only the package/tarball (before any transformation)
+        download_only="--download-only"
+        ;;
+    --url)                 # HELPOPT: print only URL instead of download package
+        print_url="--url"
+        ;;
+    --sort)               # HELPOPT: sort output, f.i. --sort=size (supported only for packages command)
+        # TODO: how to read arg?
+        sort="$1"
+        ;;
+    -y|--auto|--assumeyes|--non-interactive|--disable-interactivity)  # HELPOPT: non interactive mode
+        non_interactive="--auto"
+        interactive=""
+        ;;
+    --interactive)  # HELPOPT: interactive mode (ask before any operation)
+        interactive="--interactive"
+        non_interactive=""
+        ;;
+    --force-yes)           # HELPOPT: force yes in a danger cases (f.i., during release upgrade)
+        force_yes="--force-yes"
+        ;;
+    --no-check-certificate)
+        fatal "--no-check-certificate is a wget option. It is recommended never use it at all. Check the date or upgrade your system."
+        ;;
+    -*)
+        [ -n "$direct_args" ] && return 1
+        [ -n "$pkg_options" ] && pkg_options="$pkg_options $1" || pkg_options="$1"
+        ;;
+    *)
+        return 1
+        ;;
+    esac
+    return 0
+}
+
+check_filenames()
+{
+    local opt
+    for opt in "$@" ; do
+        # files can be with full path or have extension via .
+        if [ -f "$opt" ] && echo "$opt" | grep -q "[/\.]" ; then
+            has_space "$opt" && warning "There are space(s) in filename '$opt', it is not supported. Skipped" && continue
+            [ -n "$pkg_files" ] && pkg_files="$pkg_files $opt" || pkg_files="$opt"
+        elif [ -d "$opt" ] ; then
+            has_space "$opt" && warning "There are space(s) in directory path '$opt', it is not supported. Skipped" && continue
+            [ -n "$pkg_dirs" ] && pkg_dirs="$pkg_dirs $opt" || pkg_dirs="$opt"
+        elif is_url "$opt" ; then
+            has_space "$opt" && warning "There are space(s) in URL '$opt', it is not supported. Skipped" && continue
+            [ -n "$pkg_urls" ] && pkg_urls="$pkg_urls $opt" || pkg_urls="$opt"
+        else
+            has_space "$opt" && warning "There are space(s) in package name '$opt', it is not supported. Skipped." && continue
+            echo "$opt" | grep -q "[*]" && warning "There are forbidden symbols in package name '$opt'. Skipped." && continue
+            [ -n "$pkg_names" ] && pkg_names="$pkg_names $opt" || pkg_names="$opt"
+        fi
+        [ -n "$quoted_args" ] && quoted_args="$quoted_args \"$opt\"" || quoted_args="\"$opt\""
+    done
+}
+
+# handle external EPM_OPTIONS
+for opt in $EPM_OPTIONS ; do
+        check_option "$opt"
+done
+
+FLAGENDOPTS=
+# NOTE: can't use while read here: set vars inside
+for opt in "$@" ; do
+
+    [ "$opt" = "--" ] && FLAGENDOPTS=1 && continue
+
+    if [ -z "$FLAGENDOPTS" ] ; then
+        check_command "$opt" && continue
+        check_option "$opt" && continue
+    fi
+
+    if [ -n "$direct_args" ] ; then
+        [ -n "$quoted_args" ] && quoted_args="$quoted_args \"$opt\"" || quoted_args="\"$opt\""
+    else
+        # Note: will parse all params separately (no package names with spaces!)
+        check_filenames "$opt"
+    fi
+done
+
+if [ -n "$quiet" ] ; then
+    verbose=''
+    EPM_VERBOSE=''
+fi
+
+# fill
+export EPM_OPTIONS="$nodeps $force $verbose $debug $quiet $interactive $non_interactive $save_only $download_only"
+
+# if input is not console and run script from file, get pkgs from stdin too
+if [ ! -n "$inscript" ] && [ -p /dev/stdin ] && [ "$EPMMODE" != "pipe" ] ; then
+    for opt in $(withtimeout 10 cat) ; do
+        # FIXME: do not work
+        # workaround against # yes | epme
+        [ "$opt" = "y" ] && break;
+        [ "$opt" = "yes" ] && break;
+        check_filenames $opt
+    done
+fi
+
+# in common case dirs equals to names only suddenly
+pkg_names=$(strip_spaces "$pkg_names $pkg_dirs")
+
+pkg_filenames=$(strip_spaces "$pkg_files $pkg_names")
+
+# Just debug
+#echover "command: $epm_cmd"
+#echover "pkg_files=$pkg_files"
+#echover "pkg_names=$pkg_names"
+
+print_short_help()
+{
+cat <<EOF
+
+Popular commands:
+ epm search <name>          - search package by name
+ epm install <package>      - install package
+ epm full-upgrade           - do full upgrade (packages, kernel) of the system
+ epm Upgrade                - upgrade all installed packages (Upgrade = update + upgrade)
+ epm play [application]     - install the application (run without params to get list of available apps)
+ epm qf (<command>|<path>)  - print what package contains this command (file)
+ epm sf <name>              - search for the name in all files of all packages
+ epm cl <package name>      - print changelog for the package
+EOF
+}
+
+# Just printout help if run without args
+if [ -z "$epm_cmd" ] ; then
+    print_version >&2
+    echo >&2
+    fatstr="Unrecognized command in '$*' arg(s)"
+    if [ -z "$*" ] ; then
+        fatstr="That program needs be running with some command"
+        print_short_help >&2
+    fi
+    echo "Run $(echocmd "$PROGNAME --help") to get help." >&2
+    echo "Run $(echocmd "epm print info") to get some system and distro info." >&2
+    fatal "$fatstr."
+fi
+
+# Use eatmydata for write specific operations
+case $epm_cmd in
+    update|upgrade|Upgrade|install|reinstall|Install|remove|autoremove|kernel_update|release_upgrade|release_downgrade|check)
+        set_eatmydata
+        ;;
+esac
+
+[ -n "$verbose$EPM_VERBOSE" ] && showcmd "$0 $*"
+
+# Run helper for command with natural args
+load_helper epm-$epm_cmd
+eval epm_$epm_cmd $quoted_args
+# return last error code (from subroutine)
