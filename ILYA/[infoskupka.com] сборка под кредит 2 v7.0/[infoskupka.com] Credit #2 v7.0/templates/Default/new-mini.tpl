@@ -1,0 +1,1 @@
+<a href="{full-link}" title="{title}">{title} <span>{date}</span></a>
