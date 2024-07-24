@@ -28,7 +28,9 @@
 }
 
 path : /home/st/.config/VSCodium/User/a_styles.css
+path : /home/st/.config/VSCodium/User/b_styles.css
 
       "markdown.styles": [
-        "/home/st/.config/VSCodium/User/a_styles.css"
+        "/home/st/.config/VSCodium/User/a_styles.css",
+        "/home/st/.config/VSCodium/User/b_styles.css"
       ],
