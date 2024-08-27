@@ -7,6 +7,7 @@ name,url,username,password,note
 192.168.1.1,http://192.168.1.1/wizard/initial-setup,admin,admin,
 academy.1c-bitrix.ru,https://academy.1c-bitrix.ru/courses/,bitrix24.ru@inbox.ru,Ln73Md,
 login.1c.com,https://login.1c.com/registration,legioner9,124578a124578a,
+login.1c.com,https://login.1c.com/registration,avemeta,124578a124578a,
 login.1c.ru,https://login.1c.ru/registration,legioner9999,124578a124578a,
 2-999-999.ru,http://www.2-999-999.ru/personal/auth/,mastersruba,124578a124578a,
 reg.2domains.ru,https://reg.2domains.ru/login.php,giperionaa@ngs.ru,124578a,
