@@ -1,0 +1,22 @@
+* {
+    font-family: 'M+ 1mn regular', sans-serif;
+}
+
+/*
+#body {
+    background: #404244;
+    color: #f9f8f8;
+}
+*/
+#A {
+    color: red;
+    /* Цвет ссылок */
+}
+#A:visited {
+    color: #cecece;
+    /* Цвет посещенных ссылок */
+}
+#A:active {
+    color: #ffff00;
+    /* Цвет активных ссылок */
+}
