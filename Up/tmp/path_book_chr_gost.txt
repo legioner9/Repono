@@ -1,0 +1,2 @@
+file:///home/st/.config/chromium-gost/Default/Bookmarks
+file:///C:/Users/st/AppData/Local/Chromium/User%20Data/Default/Bookmarks
