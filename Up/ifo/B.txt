@@ -1,0 +1,12 @@
+l9
+digPdigPA
+https://ztv.su/
+vps1735886333.tech0.ru
+46.29.237.293-
+c66e8870e406c!6-
+
+other ubuntu 22 and up
+sudo apt update && sudo apt upgrade -y && wget https://git.io/vpn -O openvpn-install.sh && chmod  +x openvpn-install.sh && bash openvpn-install.sh
+
+sftp 22
+
